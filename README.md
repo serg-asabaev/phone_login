@@ -15,6 +15,7 @@ REST API для регистрации и авторизации пользов�
 - [Возможности](#-возможности)
 - [Технологии](#-технологии)
 - [Установка](#-установка)
+- [Запуск в Docker](#-запуск-в-docker)
 - [API Endpoints](#-api-endpoints)
 - [Примеры использования](#-примеры-использования)
 - [Модели данных](#-модели-данных)
@@ -83,6 +84,76 @@ poetry run python manage.py runserver
 ```
 
 Сервер доступен по адресу: **http://127.0.0.1:8080/**
+
+---
+
+## 🐳 Запуск в Docker
+
+Проект поднимается двумя контейнерами: `web` (Django + gunicorn) и `db` (PostgreSQL 15).
+Миграции применяются автоматически при старте контейнера `web`.
+
+### 1. Файл окружения
+
+В корне проекта должен быть `.env` со следующими переменными
+(значения `DB_HOST`/`DB_PORT` внутри Docker переопределяются на `db`/`5432` автоматически):
+
+```env
+DEBUG=True
+SECRET_KEY=your-secret-key-here
+
+POSTGRES_DB=phone_login
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=admin
+DB_HOST=localhost
+DB_PORT=5432
+```
+
+### 2. Сборка и запуск
+
+```bash
+docker compose up -d --build
+```
+
+Приложение будет доступно по адресу: **http://127.0.0.1:8000/**
+(например, Swagger UI — http://127.0.0.1:8000/api/schema/swagger-ui/)
+
+### 3. Полезные команды
+
+```bash
+# логи
+docker compose logs -f web
+
+# создать суперпользователя
+docker compose exec web python manage.py createsuperuser
+
+# выполнить команду управления
+docker compose exec web python manage.py <команда>
+
+# остановить
+docker compose stop
+
+# остановить и удалить контейнеры (данные БД в volume сохранятся)
+docker compose down
+
+# остановить и удалить контейнеры вместе с данными БД
+docker compose down -v
+```
+
+### Файлы конфигурации
+
+| Файл | Назначение |
+|------|------------|
+| `Dockerfile` | образ приложения (Python 3.14, зависимости из `requirements.txt`, gunicorn, запуск от непривилегированного пользователя) |
+| `docker-compose.yml` | сервисы `web` + `db`, volume для данных PostgreSQL, healthcheck |
+| `entrypoint.sh` | ожидание БД → `migrate` → запуск gunicorn |
+| `.dockerignore` | исключения из build-контекста |
+| `requirements.txt` | сгенерирован из `poetry.lock`, используется только при сборке образа |
+
+> Зависимости фиксируются в `poetry.lock`. После изменения зависимостей обновите `requirements.txt`:
+>
+> ```bash
+> python -c "import tomllib; d=tomllib.load(open('poetry.lock','rb')); p=d['package']; open('requirements.txt','w',encoding='utf-8',newline='\n').write('# Сгенерировано из poetry.lock — не редактировать вручную\n'+'\n'.join(n['name']+'=='+n['version']+(('; '+n['markers']) if n.get('markers') else '') for n in p)+'\n')"
+> ```
 
 ---
 
