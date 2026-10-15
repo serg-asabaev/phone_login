@@ -44,7 +44,7 @@ REST API для регистрации и авторизации пользов�
 | Аутентификация | djangorestframework-simplejwt |
 | Документация | drf-spectacular (OpenAPI 3.0) |
 | База данных | PostgreSQL 15 |
-| Управление зависимостями | Poetry |
+| Управление зависимостями | Poetry (`poetry.lock`) + `requirements.txt` |
 | Python | 3.14 |
 
 ---
@@ -54,10 +54,32 @@ REST API для регистрации и авторизации пользов�
 ### 1. Клонирование и установка зависимостей
 
 ```bash
-git clone "https://github.com/serg-asabaev/phone_login"
+git clone https://github.com/serg-asabaev/phone_login.git
 cd PhoneLogin
-poetry install
 ```
+
+Создайте виртуальное окружение и установите зависимости:
+
+```bash
+python -m venv .venv
+
+# Windows
+.venv\Scripts\activate
+
+# Linux / macOS
+# source .venv/bin/activate
+
+pip install -r requirements.txt
+```
+
+`requirements.txt` содержит все зависимости с зафиксированными версиями, перенесёнными из `poetry.lock`.
+Достаточно этой команды — `poetry install` и `poetry init` не требуются.
+
+> Если зависимости менялись в `poetry.lock`, обновите `requirements.txt`:
+>
+> ```bash
+> python -c "import tomllib; d=tomllib.load(open('poetry.lock','rb')); p=d['package']; open('requirements.txt','w',encoding='utf-8',newline='\n').write('# Сгенерировано из poetry.lock — не редактировать вручную\n'+'\n'.join(n['name']+'=='+n['version']+(('; '+n['markers']) if n.get('markers') else '') for n in p)+'\n')"
+> ```
 
 ### 2. Настройка окружения
 
@@ -67,9 +89,9 @@ poetry install
 DEBUG=True
 SECRET_KEY=your-secret-key-here
 
-DB_NAME=phone_login_db
-DB_USER=postgres
-DB_PASSWORD=your_password
+POSTGRES_DB=phone_login
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_password
 DB_HOST=localhost
 DB_PORT=5432
 ```
@@ -77,13 +99,13 @@ DB_PORT=5432
 ### 3. Применение миграций и запуск
 
 ```bash
-poetry run python manage.py makemigrations
-poetry run python manage.py migrate
-poetry run python manage.py createsuperuser
-poetry run python manage.py runserver
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
 ```
 
-Сервер доступен по адресу: **http://127.0.0.1:8080/**
+Сервер доступен по адресу: **http://127.0.0.1:8000/**
 
 ---
 
@@ -147,19 +169,15 @@ docker compose down -v
 | `docker-compose.yml` | сервисы `web` + `db`, volume для данных PostgreSQL, healthcheck |
 | `entrypoint.sh` | ожидание БД → `migrate` → запуск gunicorn |
 | `.dockerignore` | исключения из build-контекста |
-| `requirements.txt` | сгенерирован из `poetry.lock`, используется только при сборке образа |
+| `requirements.txt` | зависимости с зафиксированными версиями (перенесены из `poetry.lock`) — используются и в образе, и при локальной установке |
 
-> Зависимости фиксируются в `poetry.lock`. После изменения зависимостей обновите `requirements.txt`:
->
-> ```bash
-> python -c "import tomllib; d=tomllib.load(open('poetry.lock','rb')); p=d['package']; open('requirements.txt','w',encoding='utf-8',newline='\n').write('# Сгенерировано из poetry.lock — не редактировать вручную\n'+'\n'.join(n['name']+'=='+n['version']+(('; '+n['markers']) if n.get('markers') else '') for n in p)+'\n')"
-> ```
+> Зависимости фиксируются в `poetry.lock`, а `requirements.txt` обновляется из него — см. раздел [Установка](#-установка).
 
 ---
 
 ## 🌐 API Endpoints
 
-**Базовый URL:** `http://localhost:8080/users/auth/phone/`
+**Базовый URL:** `http://localhost:8000/users/auth/phone/`
 
 | Метод | Endpoint | Описание | Auth |
 |-------|----------|----------|------|
@@ -176,7 +194,7 @@ docker compose down -v
 ### 1. Запрос SMS-кода
 
 ```bash
-curl -X POST http://localhost:8080/users/auth/phone/request-code/ \
+curl -X POST http://localhost:8000/users/auth/phone/request-code/ \
   -H "Content-Type: application/json" \
   -d '{"phone": "+79991234567"}'
 ```
@@ -197,7 +215,7 @@ curl -X POST http://localhost:8080/users/auth/phone/request-code/ \
 ### 2. Подтверждение кода и вход
 
 ```bash
-curl -X POST http://localhost:8080/users/auth/phone/verify-code/ \
+curl -X POST http://localhost:8000/users/auth/phone/verify-code/ \
   -H "Content-Type: application/json" \
   -d '{"phone": "+79991234567", "code": "A3K9M2"}'
 ```
@@ -226,7 +244,7 @@ curl -X POST http://localhost:8080/users/auth/phone/verify-code/ \
 ### 3. Получить профиль
 
 ```bash
-curl -X GET http://localhost:8080/users/auth/phone/me/ \
+curl -X GET http://localhost:8000/users/auth/phone/me/ \
   -H "Authorization: Bearer <access_token>"
 ```
 
@@ -251,7 +269,7 @@ curl -X GET http://localhost:8080/users/auth/phone/me/ \
 ### 4. Активировать инвайт-код
 
 ```bash
-curl -X POST http://localhost:8080/users/auth/phone/apply-invite/ \
+curl -X POST http://localhost:8000/users/auth/phone/apply-invite/ \
   -H "Authorization: Bearer <access_token>" \
   -H "Content-Type: application/json" \
   -d '{"invite_code": "X7Y2Z9"}'
@@ -281,7 +299,7 @@ curl -X POST http://localhost:8080/users/auth/phone/apply-invite/ \
 ### 5. Список приглашённых пользователей
 
 ```bash
-curl -X GET http://localhost:8080/users/auth/phone/my-invited-users/ \
+curl -X GET http://localhost:8000/users/auth/phone/my-invited-users/ \
   -H "Authorization: Bearer <access_token>"
 ```
 
@@ -338,9 +356,9 @@ curl -X GET http://localhost:8080/users/auth/phone/my-invited-users/ \
 
 | Интерфейс | URL                                          |
 |-----------|----------------------------------------------|
-| **ReDoc** | http://127.0.0.1:8080/api/schema/redoc/      |
-| **Swagger UI** | http://127.0.0.1:8080/api/schema/swagger-ui/ |
-| **OpenAPI схема** | http://127.0.0.1:8080/api/schema/            |
+| **ReDoc** | http://127.0.0.1:8000/api/schema/redoc/      |
+| **Swagger UI** | http://127.0.0.1:8000/api/schema/swagger-ui/ |
+| **OpenAPI схема** | http://127.0.0.1:8000/api/schema/            |
 
 ### Авторизация в Swagger UI
 
