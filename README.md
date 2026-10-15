@@ -187,6 +187,7 @@ docker compose down -v
 | `POST` | `/apply-invite/` | Активировать инвайт-код | ✅ |
 | `GET` | `/my-invited-users/` | Список приглашённых | ✅ |
 
+примеры всех запросов к эндпоинтам находятся в файле phone-login.postman_collection.json в виде postman-коллекции.
 ---
 
 ## 📝 Примеры использования
