@@ -1,0 +1,144 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Профиль{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+
+        <!-- Карточка профиля -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">👤 Мой профиль</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <p class="text-muted mb-1">Номер телефона</p>
+                        <p class="fs-5 mb-0">{{ user.phone }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <p class="text-muted mb-1">Дата регистрации</p>
+                        <p class="fs-5 mb-0">{{ user.date_joined|date:"d.m.Y" }}</p>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- БЛОК С ИНВАЙТ-КОДОМ -->
+                <div class="mt-4">
+                    <label class="form-label text-muted fw-bold">Ваш персональный инвайт-код:</label>
+                    <div class="input-group input-group-lg">
+                        <input type="text"
+                               class="form-control text-center fw-bold font-monospace"
+                               value="{{ user.invite_code }}"
+                               readonly
+                               id="myInviteCode"
+                               style="letter-spacing: 3px; background-color: #f8f9fa;">
+                        <button class="btn btn-outline-primary" type="button" onclick="copyInviteCode()">
+                            📋 Копировать
+                        </button>
+                    </div>
+                    <div class="form-text">
+                        Поделитесь этим кодом с друзьями. Когда они зарегистрируются, вы увидите их в списке ниже.
+                    </div>
+                </div>
+                <!-- КОНЕЦ БЛОКА С ИНВАЙТ-КОДОМ -->
+
+            </div>
+        </div>
+
+        <!-- Блок: Кто меня пригласил (если есть) -->
+        {% if user.invited_by %}
+        <div class="card mb-4 shadow-sm border-success">
+            <div class="card-body">
+                <h5 class="card-title text-success">🎁 Вас пригласил друг</h5>
+                <p class="mb-0">Вы успешно активировали инвайт-код пользователя: <strong>{{ user.invited_by.phone }}</strong></p>
+            </div>
+        </div>
+        {% else %}
+        <!-- Блок: Ввод чужого инвайт-кода -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">🎁 У вас есть инвайт-код?</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Введите код друга, чтобы отметить, кто вас пригласил (доступно только один раз):</p>
+                <form method="post" action="{% url 'users:apply_invite' %}">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="text" name="invite_code" class="form-control form-control-lg text-uppercase" placeholder="Например: A1B2C3" required maxlength="6" style="letter-spacing: 2px;">
+                        <button type="submit" class="btn btn-success">Активировать</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Список приглашенных -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">👥 Приглашенные пользователи</h5>
+                <span class="badge bg-light text-dark fs-6">{{ invited_count }}</span>
+            </div>
+            <div class="card-body">
+                {% if invited_users %}
+                    <ul class="list-group list-group-flush">
+                        {% for invited in invited_users %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>📱 {{ invited.phone }}</span>
+                                <small class="text-muted">
+                                    {{ invited.date_joined|date:"d.m.Y" }}
+                                </small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0 text-center py-3">
+                        Вы пока никого не пригласили. <br>
+                        <small>Скопируйте свой код выше и отправьте его друзьям!</small>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Скрипт для копирования -->
+<script>
+function copyInviteCode() {
+    const codeInput = document.getElementById('myInviteCode');
+    const btn = event.target.closest('button');
+
+    // Современный способ копирования
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(codeInput.value).then(() => {
+            showSuccess(btn);
+        }).catch(() => {
+            fallbackCopy(codeInput, btn);
+        });
+    } else {
+        fallbackCopy(codeInput, btn);
+    }
+}
+
+function fallbackCopy(element, btn) {
+    element.select();
+    element.setSelectionRange(0, 99999); // Для мобильных устройств
+    document.execCommand('copy');
+    showSuccess(btn);
+}
+
+function showSuccess(btn) {
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '✅ Скопировано!';
+    btn.classList.replace('btn-outline-primary', 'btn-success');
+
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.classList.replace('btn-success', 'btn-outline-primary');
+    }, 2000);
+}
+</script>
+{% endblock %}
