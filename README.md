@@ -1,4 +1,3 @@
-```markdown
 # 📱 Phone Login API
 
 REST API для регистрации и авторизации пользователей по номеру телефона с подтверждением через SMS-код и встроенной реферальной системой.
@@ -54,7 +53,7 @@ REST API для регистрации и авторизации пользов�
 ### 1. Клонирование и установка зависимостей
 
 ```bash
-git clone 
+git clone "https://github.com/serg-asabaev/phone_login"
 cd PhoneLogin
 poetry install
 ```
@@ -83,13 +82,13 @@ poetry run python manage.py createsuperuser
 poetry run python manage.py runserver
 ```
 
-Сервер доступен по адресу: **http://127.0.0.1:8000/**
+Сервер доступен по адресу: **http://127.0.0.1:8080/**
 
 ---
 
 ## 🌐 API Endpoints
 
-**Базовый URL:** `http://127.0.0.1:8000/api/auth/phone/`
+**Базовый URL:** `http://localhost:8080/users/auth/phone/`
 
 | Метод | Endpoint | Описание | Auth |
 |-------|----------|----------|------|
@@ -106,7 +105,7 @@ poetry run python manage.py runserver
 ### 1. Запрос SMS-кода
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/auth/phone/request-code/ \
+curl -X POST http://localhost:8080/users/auth/phone/request-code/ \
   -H "Content-Type: application/json" \
   -d '{"phone": "+79991234567"}'
 ```
@@ -127,7 +126,7 @@ curl -X POST http://127.0.0.1:8000/api/auth/phone/request-code/ \
 ### 2. Подтверждение кода и вход
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/auth/phone/verify-code/ \
+curl -X POST http://localhost:8080/users/auth/phone/verify-code/ \
   -H "Content-Type: application/json" \
   -d '{"phone": "+79991234567", "code": "A3K9M2"}'
 ```
@@ -156,7 +155,7 @@ curl -X POST http://127.0.0.1:8000/api/auth/phone/verify-code/ \
 ### 3. Получить профиль
 
 ```bash
-curl -X GET http://127.0.0.1:8000/api/auth/phone/me/ \
+curl -X GET http://localhost:8080/users/auth/phone/me/ \
   -H "Authorization: Bearer <access_token>"
 ```
 
@@ -181,7 +180,7 @@ curl -X GET http://127.0.0.1:8000/api/auth/phone/me/ \
 ### 4. Активировать инвайт-код
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/auth/phone/apply-invite/ \
+curl -X POST http://localhost:8080/users/auth/phone/apply-invite/ \
   -H "Authorization: Bearer <access_token>" \
   -H "Content-Type: application/json" \
   -d '{"invite_code": "X7Y2Z9"}'
@@ -211,7 +210,7 @@ curl -X POST http://127.0.0.1:8000/api/auth/phone/apply-invite/ \
 ### 5. Список приглашённых пользователей
 
 ```bash
-curl -X GET http://127.0.0.1:8000/api/auth/phone/my-invited-users/ \
+curl -X GET http://localhost:8080/users/auth/phone/my-invited-users/ \
   -H "Authorization: Bearer <access_token>"
 ```
 
@@ -266,11 +265,11 @@ curl -X GET http://127.0.0.1:8000/api/auth/phone/my-invited-users/ \
 
 После запуска сервера доступны:
 
-| Интерфейс | URL |
-|-----------|-----|
-| **ReDoc** | http://127.0.0.1:8000/api/schema/redoc/ |
-| **Swagger UI** | http://127.0.0.1:8000/api/schema/swagger-ui/ |
-| **OpenAPI схема** | http://127.0.0.1:8000/api/schema/ |
+| Интерфейс | URL                                          |
+|-----------|----------------------------------------------|
+| **ReDoc** | http://127.0.0.1:8080/api/schema/redoc/      |
+| **Swagger UI** | http://127.0.0.1:8080/api/schema/swagger-ui/ |
+| **OpenAPI схема** | http://127.0.0.1:8080/api/schema/            |
 
 ### Авторизация в Swagger UI
 

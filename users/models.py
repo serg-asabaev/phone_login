@@ -12,8 +12,11 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('Номер телефона обязателен')
 
         user = self.model(phone=phone, **extra_fields)
-        user.set_password(password)
-        user.invite_code = self._generate_unique_invite_code()
+        if password:
+            user.set_password(password)
+        else:
+            user.set_unusable_password()
+
         user.save(using=self._db)
         return user
 
@@ -54,7 +57,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
-    # КЛЮЧЕВОЙ МОМЕНТ: указываем поле для аутентификации
     USERNAME_FIELD = 'phone'
     REQUIRED_FIELDS = []
 

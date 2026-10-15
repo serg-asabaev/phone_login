@@ -2,7 +2,9 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 from django.contrib.messages import constants as messages
+import sys
 
+TESTING = 'test' in sys.argv
 load_dotenv(override=True)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -120,13 +122,15 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    'DEFAULT_THROTTLE_CLASSES': [
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+
+    # Отключаем throttling ТОЛЬКО во время тестов
+    'DEFAULT_THROTTLE_CLASSES': [] if TESTING else [
         'rest_framework.throttling.AnonRateThrottle',
     ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '10/minute',  # Защита от флуда
+    'DEFAULT_THROTTLE_RATES': {} if TESTING else {
+        'anon': '10/minute',
     },
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 
