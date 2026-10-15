@@ -138,7 +138,7 @@ class PhoneAuthViewSet(viewsets.GenericViewSet):
             'has_used_invite': True
         }, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated], url_path='my-invited-users')
     def my_invited_users(self, request):
         """Получить список пользователей, которых пригласил текущий пользователь"""
         invited = User.objects.filter(invited_by=request.user)
@@ -148,6 +148,13 @@ class PhoneAuthViewSet(viewsets.GenericViewSet):
             'users': serializer.data
         })
 
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[IsAuthenticated],
+        serializer_class=UserSerializer,
+        url_path='me'  # ← ДОЛЖНО БЫТЬ ИМЕННО 'me'
+    )
     def me(self, request):
         """Получить информацию о текущем пользователе"""
         serializer = self.get_serializer(request.user)
